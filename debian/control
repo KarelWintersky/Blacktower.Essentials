@@ -1,0 +1,13 @@
+Source: blacktower.essentials
+Section: unknown
+Priority: optional
+Maintainer: Karel Wintersky <karel@wintersky.ru>
+Uploaders: Karel Wintersky <karel@wintersky.ru>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 3.9.8
+Homepage: https://karel.wintersky.ru
+
+Package: blacktower.essentials
+Architecture: all
+Depends: curl, wget, make
+Description: Blacktower Essentials script

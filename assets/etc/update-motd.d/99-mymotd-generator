@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Text Color Variables http://misc.flogisoft.com/bash/tip_colors_and_formatting
+tcLtG="\033[00;37m"    # LIGHT GRAY
+tcDkG="\033[01;30m"    # DARK GRAY
+tcLtR="\033[01;31m"    # LIGHT RED
+tcLtGRN="\033[01;32m"  # LIGHT GREEN
+tcLtBL="\033[01;34m"   # LIGHT BLUE
+tcLtP="\033[01;35m"    # LIGHT PURPLE
+tcLtC="\033[01;36m"    # LIGHT CYAN
+tcW="\033[01;37m"      # WHITE
+tcRESET="\033[0m"
+tcORANGE="\033[38;5;209m"
+
+# Time of day
+HOUR=$(date +"%H")
+if [ $HOUR -lt 12  -a $HOUR -ge 0 ]; then TIME="morning"
+elif [ $HOUR -lt 17 -a $HOUR -ge 12 ]; then TIME="afternoon"
+else TIME="evening"
+fi
+
+# System uptime
+uptime=`cat /proc/uptime | cut -f1 -d.`
+upDays=$((uptime/60/60/24))
+upHours=$((uptime/60/60%24))
+upMins=$((uptime/60%60))
+
+# System + Memory
+MEMORY_USED=`free -b | grep Mem | awk '{print $3/$2 * 100.0}'`
+SWAP_USED=`free -b | grep Swap | awk '{print $3/$2 * 100.0}'`
+NUM_PROCS=`ps aux | wc -l`
+
+# IP первого сетевого интерфейса
+LOCAL_IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+' | grep -v '^127\.' | head -n 1)
+
+# Имя сервера
+HOSTNAME=$(hostname)
+
+# ОS
+OS=$(grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+
+# Пользователь
+USER_NAME=$(whoami)
+[ "$USER_NAME" = "root" ] && USER_NAME="${tcLtR}${USER_NAME}${tcRESET}"
+
+# Load average
+LOADAVG=$(awk '{print $1" "$2" "$3}' /proc/loadavg)
+SYS_LOADS=`cat /proc/loadavg | awk '{print $1}'`
+
+# RAM: всего и свободно (в мегабайтах)
+RAM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+RAM_FREE=$(free -m | awk '/Mem:/ {print $7}')
+RAM_FREE_PCT=$(( RAM_FREE * 100 / RAM_TOTAL ))
+
+# Количество CPU
+CPU_COUNT=$(nproc)
+
+# Uptime
+UPTIME=$(uptime -p)
+
+# HDD: для корневого раздела /
+DISK_TOTAL_HUMAN=$(df -h / | awk 'NR==2 {print $2}')
+DISK_FREE_HUMAN=$(df -h / | awk 'NR==2 {print $4}')
+
+# Используем df без форматирования для процентов
+DISK_TOTAL=$(df -k / | awk 'NR==2 {print $2}')
+DISK_FREE=$(df -k / | awk 'NR==2 {print $4}')
+DISK_FREE_PCT=$(( DISK_FREE * 100 / DISK_TOTAL ))
+
+echo -e "$tcDkG ==============================================================="
+echo -e $tcLtG " Good $TIME!                                $tcORANGE $LOCAL_IP"
+echo -e $tcDkG "==============================================================="
+echo -e $tcLtG " - Hostname      :$tcW ${HOSTNAME}"
+echo -e $tcLtG " - IP Address    :$tcW ${LOCAL_IP:-N/A}"
+echo -e $tcLtG " - User          :$tcW ${USER_NAME}"
+echo -e $tcLtG "==============================================================="
+echo -e $tcLtG " - OS Release    :$tcW ${OS}"
+echo -e $tcLtG " - Kernel        : `uname -a | awk '{print $1" "$3" "$12}'`"
+echo -e $tcLtG " - Users         : Currently `users | wc -w` user(s) logged on"
+echo -e $tcLtG "==============================================================="
+echo -e $tcLtG " - Server Time   : `date`"
+echo -e $tcLtG " - System load   : ${SYS_LOADS} / ${NUM_PROCS} processes running"
+echo -e $tcLtG " - Load average  : ${LOADAVG}"
+echo -e $tcLtG " - System uptime : ${upDays} days ${upHours} hours ${upMins} minutes"
+echo -e $tcLtG "==============================================================="
+echo -e $tcLtG " - CPU           : ${CPU_COUNT} CPU"
+echo -e $tcLtG " - RAM           : ${RAM_TOTAL} MB, ${RAM_FREE} MB (${RAM_FREE_PCT}%) free"
+echo -e $tcLtG " - HDD           : ${DISK_TOTAL_HUMAN}, ${DISK_FREE_HUMAN} (${DISK_FREE_PCT}%) free"
+echo -e $tcLtG " - Swap used %   : ${SWAP_USED}"
+echo -e $tcDkG "==============================================================="
+echo -e $tcRESET ""
+

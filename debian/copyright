@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: blacktower.essentials
+Source: -
+
+This package was debianized by Karel Wintersky <karel@wintersky.ru> on
+28 April 2026 23:16:00 +0300
+
+Upstream Author(s): Karel Wintersky <karel@wintersky.ru>
+
+Copyright:
+
+...
