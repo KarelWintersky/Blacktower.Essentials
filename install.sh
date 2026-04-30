@@ -174,6 +174,7 @@ export HISTTIMEFORMAT="%F %T  "
 export HISTCONTROL=ignoredups:ignorespace
 shopt -s histappend
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+export TERM=xterm-256color
 EOF
 
 chown "$NEW_USER:$NEW_USER" "/home/$NEW_USER/.bashrc"
@@ -189,6 +190,7 @@ export HISTTIMEFORMAT="%F %T  "
 export HISTCONTROL=ignoredups:ignorespace
 shopt -s histappend
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+export TERM=xterm-256color
 EOF
 
 source /root/.bashrc
