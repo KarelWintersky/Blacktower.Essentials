@@ -16,12 +16,14 @@ fi
 
 echo -e "${ANSI_GREEN}=== Настройка системы ===${ANSI_RESET}"
 
-# Запрос имени хоста
-echo -e "${ANSI_YELLOW}Введите новое имя хоста:${ANSI_RESET}"
+# Получаем текущее имя хоста
+CURRENT_HOSTNAME=$(hostname)
+
+# Запрос имени хоста с выводом текущего значения
+echo -e "${ANSI_YELLOW}Введите новое имя хоста (текущее: $CURRENT_HOSTNAME):${ANSI_RESET}"
 read -p "Hostname: " NEW_HOSTNAME
 if [ -z "$NEW_HOSTNAME" ]; then
-    echo -e "${ANSI_RED}Имя хоста не может быть пустым.${ANSI_RESET}"
-    exit 1
+    NEW_HOSTNAME="$CURRENT_HOSTNAME"
 fi
 
 # Запрос имени пользователя
@@ -41,10 +43,33 @@ if [ -z "$USER_PASS" ]; then
     exit 1
 fi
 
+# Запрос о использовании прокси для apt
+echo -e "\n${ANSI_YELLOW}Использовать прокси-сервер apt-cacher-ng? (y/n):${ANSI_RESET}"
+read -p "Use proxy? " USE_PROXY
+if [[ "$USE_PROXY" =~ ^[Yy]$ ]]; then
+    echo -e "${ANSI_YELLOW}Введите URL прокси-сервера (например: http://192.168.1.100:3142):${ANSI_RESET}"
+    read -p "Proxy URL: " PROXY_URL
+    if [ -n "$PROXY_URL" ]; then
+        echo -e "${ANSI_GREEN}Настройка прокси для apt...${ANSI_RESET}"
+        cat > /etc/apt/apt.conf.d/02aptproxy << EOF
+Acquire::http::proxy "$PROXY_URL";
+Acquire::ftp::proxy "$PROXY_URL";
+EOF
+        echo -e "${ANSI_GREEN}Прокси настроен в /etc/apt/apt.conf.d/02aptproxy${ANSI_RESET}"
+    else
+        echo -e "${ANSI_RED}URL прокси не введен, пропускаем${ANSI_RESET}"
+    fi
+fi
+
 echo -e "\n${ANSI_GREEN}=== Установка имени хоста: $NEW_HOSTNAME ===${ANSI_RESET}"
 hostnamectl set-hostname "$NEW_HOSTNAME"
+
 # Обновление /etc/hosts
-sed -i "s/^127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/" /etc/hosts
+if grep -q "^127.0.1.1" /etc/hosts; then
+    sed -i "s/^127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/" /etc/hosts
+else
+    echo "127.0.1.1\t$NEW_HOSTNAME" >> /etc/hosts
+fi
 echo -e "${ANSI_GREEN}Имя хоста установлено.${ANSI_RESET}"
 
 # Функция добавления репозитория MEPHI
